@@ -11,6 +11,7 @@ use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use Psr\Http\Message\ResponseInterface;
 use Stevenmaguire\OAuth2\Client\Provider\Exception\EncryptionConfigurationException;
 use UnexpectedValueException;
+use Firebase\JWT\Key;
 
 class Keycloak extends AbstractProvider
 {
@@ -49,10 +50,10 @@ class Keycloak extends AbstractProvider
     public $encryptionKey = null;
 
     /**
-      * Keycloak version.
-      *
-      * @var string
-      */
+     * Keycloak version.
+     *
+     * @var string
+     */
     public $version = null;
 
     /**
@@ -83,7 +84,7 @@ class Keycloak extends AbstractProvider
     /**
      * Attempts to decrypt the given response.
      *
-     * @param  string|array|null $response
+     * @param string|array|null $response
      *
      * @return string|array|null
      */
@@ -98,8 +99,7 @@ class Keycloak extends AbstractProvider
                 json_encode(
                     JWT::decode(
                         $response,
-                        $this->encryptionKey,
-                        array($this->encryptionAlgorithm)
+                        new Key($this->encryptionKey, $this->encryptionAlgorithm)
                     )
                 ),
                 true
@@ -116,31 +116,31 @@ class Keycloak extends AbstractProvider
      */
     public function getBaseAuthorizationUrl()
     {
-        return $this->getBaseUrlWithRealm().'/protocol/openid-connect/auth';
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/auth';
     }
 
     /**
      * Get access token url to retrieve token
      *
-     * @param  array $params
+     * @param array $params
      *
      * @return string
      */
     public function getBaseAccessTokenUrl(array $params)
     {
-        return $this->getBaseUrlWithRealm().'/protocol/openid-connect/token';
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/token';
     }
 
     /**
      * Get provider url to fetch user details
      *
-     * @param  AccessToken $token
+     * @param AccessToken $token
      *
      * @return string
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
-        return $this->getBaseUrlWithRealm().'/protocol/openid-connect/userinfo';
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/userinfo';
     }
 
     /**
@@ -189,7 +189,7 @@ class Keycloak extends AbstractProvider
      */
     protected function getBaseUrlWithRealm()
     {
-        return $this->authServerUrl.'/realms/'.$this->realm;
+        return $this->authServerUrl . '/realms/' . $this->realm;
     }
 
     /**
@@ -227,17 +227,17 @@ class Keycloak extends AbstractProvider
     /**
      * Check a provider response for errors.
      *
-     * @throws IdentityProviderException
-     * @param  ResponseInterface $response
-     * @param  string $data Parsed response data
+     * @param ResponseInterface $response
+     * @param string $data Parsed response data
      * @return void
+     * @throws IdentityProviderException
      */
     protected function checkResponse(ResponseInterface $response, $data)
     {
         if (!empty($data['error'])) {
             $error = $data['error'];
             if (isset($data['error_description'])) {
-                $error.=': '.$data['error_description'];
+                $error .= ': ' . $data['error_description'];
             }
             throw new IdentityProviderException($error, 0, $data);
         }
@@ -258,7 +258,7 @@ class Keycloak extends AbstractProvider
     /**
      * Requests and returns the resource owner of given access token.
      *
-     * @param  AccessToken $token
+     * @param AccessToken $token
      * @return KeycloakResourceOwner
      * @throws EncryptionConfigurationException
      */
@@ -280,7 +280,7 @@ class Keycloak extends AbstractProvider
     /**
      * Updates expected encryption algorithm of Keycloak instance.
      *
-     * @param string  $encryptionAlgorithm
+     * @param string $encryptionAlgorithm
      *
      * @return Keycloak
      */
@@ -294,7 +294,7 @@ class Keycloak extends AbstractProvider
     /**
      * Updates expected encryption key of Keycloak instance.
      *
-     * @param string  $encryptionKey
+     * @param string $encryptionKey
      *
      * @return Keycloak
      */
@@ -309,7 +309,7 @@ class Keycloak extends AbstractProvider
      * Updates expected encryption key of Keycloak instance to content of given
      * file path.
      *
-     * @param string  $encryptionKeyPath
+     * @param string $encryptionKeyPath
      *
      * @return Keycloak
      */
@@ -324,13 +324,13 @@ class Keycloak extends AbstractProvider
         return $this;
     }
 
-     /**
-      * Updates the keycloak version.
-      *
-      * @param string  $version
-      *
-      * @return Keycloak
-      */
+    /**
+     * Updates the keycloak version.
+     *
+     * @param string $version
+     *
+     * @return Keycloak
+     */
     public function setVersion($version)
     {
         $this->version = $version;
@@ -345,15 +345,15 @@ class Keycloak extends AbstractProvider
      */
     public function usesEncryption()
     {
-        return (bool) $this->encryptionAlgorithm && $this->encryptionKey;
+        return (bool)$this->encryptionAlgorithm && $this->encryptionKey;
     }
 
     /**
      * Parses the response according to its content-type header.
      *
-     * @throws UnexpectedValueException
-     * @param  ResponseInterface $response
+     * @param ResponseInterface $response
      * @return array
+     * @throws UnexpectedValueException
      */
     protected function parseResponse(ResponseInterface $response)
     {
@@ -363,7 +363,7 @@ class Keycloak extends AbstractProvider
         // application/jwt
         // This can't be parsed to a array
         // Dont know why this function only allow an array as return value...
-        $content = (string) $response->getBody();
+        $content = (string)$response->getBody();
         $type = $this->getContentType($response);
 
         if (strpos($type, 'jwt') !== false) {
