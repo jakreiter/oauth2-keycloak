@@ -1,6 +1,6 @@
 {
-    "name": "stevenmaguire/oauth2-keycloak",
-    "description": "Keycloak OAuth 2.0 Client Provider for The PHP League OAuth2-Client",
+    "name": "jakreiter/oauth2-keycloak",
+    "description": "Keycloak OAuth 2.0 Client Provider for The PHP League OAuth2-Client - fork using firebase/php-jwt ~6.0",
     "license": "MIT",
     "authors": [
         {
